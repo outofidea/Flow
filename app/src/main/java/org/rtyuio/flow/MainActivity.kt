@@ -85,6 +85,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
+import org.rtyuio.flow.AppDB
 
 @Parcelize
 data class ScheduleItem(val hour: Int = 0, val minute: Int = 0, val isDone: Boolean = false) :
@@ -102,16 +103,25 @@ data class ScheduleItem(val hour: Int = 0, val minute: Int = 0, val isDone: Bool
             false
         }
     }
+
+    override fun hashCode(): Int {
+        var result = hour
+        result = 31 * result + minute
+        result = 31 * result + isDone.hashCode()
+        return result
+    }
 }
 
 
 class MainActivity : ComponentActivity() {
+
 
     val Context.dataStore by preferencesDataStore(name = "Flow_prefs")
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
 
             var editing by remember { mutableStateOf(false) }
@@ -141,7 +151,12 @@ class MainActivity : ComponentActivity() {
                                 )
 
                                 if (newChecklistItem in checklistItems) {
-                                    scope.launch { snackbarHostState.showSnackbar("Schedule already exists!", withDismissAction = true) }
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            "Schedule already exists!",
+                                            withDismissAction = true
+                                        )
+                                    }
                                 } else {
                                     checklistItems = (checklistItems + newChecklistItem).sorted()
                                 }
@@ -241,7 +256,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        //* save db state
 
+
+        super.onStop()
+    }
 }
 
 

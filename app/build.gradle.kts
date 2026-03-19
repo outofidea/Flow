@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    id("org.jetbrains.kotlin.plugin.parcelize") version "2.3.20-RC3"
+    id("org.jetbrains.kotlin.plugin.parcelize") version "2.3.20"
+    id("androidx.room")
 }
 
 android {
@@ -35,6 +36,10 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    //noinspection WrongGradleMethod like wtf happened here ??
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 }
 
