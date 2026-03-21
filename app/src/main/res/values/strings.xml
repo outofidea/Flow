@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Flow</string>
+    <string name="notification_channel" translatable="false">flow_notification_channel</string>
 </resources>

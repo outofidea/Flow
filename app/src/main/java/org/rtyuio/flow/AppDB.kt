@@ -1,6 +1,5 @@
 package org.rtyuio.flow
 
-import android.content.Context
 import androidx.room.RoomDatabase
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -9,30 +8,32 @@ import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy.Companion.REPLACE
 import androidx.room.Query
-import androidx.room.Room
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import java.util.Date
+import java.time.LocalDate
 
 
 class Converters {
     @TypeConverter
-    fun dateFromTimestamp(value: Long?): Date? {
-        return value?.let { Date(it) }
+    fun dateFromString(value: String?): LocalDate? {
+        return value?.let { LocalDate.parse(value) }
     }
 
     @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? {
-        return date?.time?.toLong()
+    fun dateToString(date: LocalDate?): String? {
+        return date?.toString()
     }
 
 }
 
+
 @Entity(tableName = "schedule")
-public data class ScheduleItemDb(
-    @PrimaryKey val timestamp: Date,
-    @ColumnInfo("isDone") val isDone: Boolean
+ data  class ScheduleItemDb(
+    @PrimaryKey val time: String,
+    @ColumnInfo("isDone") val isDone: Boolean = false,
+    @ColumnInfo("date") val date: LocalDate
 )
 
 @Dao
@@ -43,30 +44,12 @@ interface ScheduleDao {
     @Delete
     suspend fun delete(scheduleItem: ScheduleItemDb)
 
-    @Insert
+    @Insert(onConflict = REPLACE)
     suspend fun insertAll(vararg scheduleItems: ScheduleItemDb)
 }
 
 @TypeConverters(Converters::class)
-@Database(entities = [ScheduleItemDb::class], version = 1)
+@Database(entities = [ScheduleItemDb::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun scheduleDao(): ScheduleDao
-}
-
-class AppDB {
-    companion object {
-        @Volatile
-        private var dbInstance: AppDatabase? = null;
-        fun getDbInstance(ctx: Context): AppDatabase {
-            return dbInstance ?: synchronized(this) {
-                return buildDb(ctx).also { dbInstance = it }
-            }
-            // will hang if ts gets me a null reference exception
-        }
-
-        private fun buildDb(ctx: Context): AppDatabase {
-            return Room.databaseBuilder(ctx, AppDatabase::class.java, "Flow-schedule-db").build()
-        }
-    }
-
 }
